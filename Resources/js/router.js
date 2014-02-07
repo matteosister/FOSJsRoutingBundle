@@ -267,3 +267,64 @@ fos.Router.prototype.generate = function(name, opt_params, absolute) {
 
     return url;
 };
+
+/**
+ * Generates the Angular.js resource URL for a route.
+ *
+ * @param {string} name
+ * @param {boolean} absolute
+ * @return {string}
+ */
+fos.Router.prototype.generateAngularResourceUrl = function(name, absolute) {
+    var route = (this.getRoute(name)),
+        params = {},
+        url = '',
+        optional = false,
+        host = '';
+
+    goog.array.forEach(route.tokens, function(token) {
+        if ('text' === token[0]) {
+            url = token[1] + url;
+            optional = false;
+
+            return;
+        }
+
+        if ('variable' === token[0]) {
+            var hasDefault = goog.object.containsKey(route.defaults, token[3]);
+            if (hasDefault && null === route.defaults[token[3]]) {
+                return;
+            }
+            url = token[1] + ':' + token[3] + url;
+
+            return;
+        }
+    });
+
+    if (url === '') {
+        url = '/';
+    }
+
+    goog.array.forEach(route.hosttokens, function (token) {
+        if ('text' === token[0]) {
+            host = token[1] + host;
+
+            return;
+        }
+
+        if ('variable' === token[0]) {
+            host = token[1] + ':' + token[3] + host;
+        }
+    });
+
+    url = this.context_.base_url + url;
+    if (goog.object.containsKey(route.requirements, "_scheme") && this.getScheme() != route.requirements["_scheme"]) {
+        url = route.requirements["_scheme"] + "://" + (host || this.getHost()) + url;
+    } else if (host && this.getHost() !== host) {
+        url = this.getScheme() + "://" + host + url;
+    } else if (absolute === true) {
+        url = this.getScheme() + "://" + this.getHost() + url;
+    }
+
+    return url;
+}

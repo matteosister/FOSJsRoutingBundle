@@ -360,3 +360,70 @@ function testGenerateWithNullValue() {
 
     assertEquals('/blog-post//10', router.generate('posts', { page: null, id: 10 }));
 }
+
+function testGenerateAngularResourceUrl() {
+    var router = new fos.Router({base_url: ''}, {
+        posts: {
+            tokens: [
+                ['variable', '/', '.+', 'id'],
+                ['text', '/blog-post']
+            ],
+            defaults: {},
+            requirements: {},
+            hosttokens: []
+        }
+    });
+
+    assertEquals('/blog-post/:id', router.generateAngularResourceUrl('posts'));
+}
+
+function testGenerateAngularResourceUrlAbsolute() {
+    var router = new fos.Router({base_url: '', host: "localhost", scheme: "http"}, {
+        posts: {
+            tokens: [
+                ['variable', '/', '.+', 'id'],
+                ['text', '/blog-post']
+            ],
+            defaults: {},
+            requirements: {},
+            hosttokens: [
+                ['text', '.localhost'],
+                ['variable', '', '', 'subdomain']
+            ]
+        }
+    });
+
+    assertEquals('http://:subdomain.localhost/blog-post/:id', router.generateAngularResourceUrl('posts', true));
+}
+
+function testGenerateAngularResourceUrlSchemeRequirements() {
+    var router = new fos.Router({base_url: '', host: "localhost", scheme: "http"}, {
+        posts: {
+            tokens: [
+                ['variable', '/', '.+', 'id'],
+                ['text', '/blog-post']
+            ],
+            defaults: {},
+            requirements: {"_scheme": "https"},
+            hosttokens: []
+        }
+    });
+
+    assertEquals('https://localhost/blog-post/:id', router.generateAngularResourceUrl('posts'));
+}
+
+function testGenerateAngularResourceUrlDefaults() {
+    var router = new fos.Router({base_url: ''}, {
+        posts: {
+            tokens: [
+                ['variable', '/', '.+', 'id'],
+                ['text', '/blog-post']
+            ],
+            defaults: {'id' : 1},
+            requirements: {},
+            hosttokens: []
+        }
+    });
+
+    assertEquals('/blog-post/:id', router.generateAngularResourceUrl('posts'));
+}
